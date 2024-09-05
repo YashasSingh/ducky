@@ -41,3 +41,55 @@ duckyCommands = {
     'F8': Keycode.F8, 'F9': Keycode.F9, 'F10': Keycode.F10, 'F11': Keycode.F11,
     'F12': Keycode.F12,
 }
+def convertLine(line):
+    newline = []
+    for key in filter(None, line.split(" ")):
+        key = key.upper()
+        command_keycode = duckyCommands.get(key, None)
+        if command_keycode is not None:
+            newline.append(command_keycode)
+        elif hasattr(Keycode, key):
+            newline.append(getattr(Keycode, key))
+        else:
+            print(f"Unknown key: <{key}>")
+    return newline
+
+def runScriptLine(line):
+    for k in line:
+        kbd.press(k)
+    kbd.release_all()
+
+def sendString(line):
+    layout.write(line)
+
+def parseLine(line):
+    global defaultDelay
+    if(line[0:3] == "REM"):
+        pass
+    elif(line[0:5] == "DELAY"):
+        time.sleep(float(line[6:])/1000)
+    elif(line[0:6] == "STRING"):
+        sendString(line[7:])
+    elif(line[0:5] == "PRINT"):
+        print("[SCRIPT]: " + line[6:])
+    elif(line[0:6] == "IMPORT"):
+        runScript(line[7:])
+    elif(line[0:13] == "DEFAULT_DELAY"):
+        defaultDelay = int(line[14:]) * 10
+    elif(line[0:12] == "DEFAULTDELAY"):
+        defaultDelay = int(line[13:]) * 10
+    elif(line[0:3] == "LED"):
+        if(led.value == True):
+            led.value = False
+        else:
+            led.value = True
+    elif(line[0:21] == "WAIT_FOR_BUTTON_PRESS"):
+        button_pressed = False
+        while not button_pressed:
+            button1.update()
+            if(button1.fell):
+                print("Button 1 pushed")
+                button_pressed = True
+    else:
+        newScriptLine = convertLine(line)
+        runScriptLine(newScriptLine)

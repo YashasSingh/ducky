@@ -93,3 +93,56 @@ def parseLine(line):
     else:
         newScriptLine = convertLine(line)
         runScriptLine(newScriptLine)
+kbd = Keyboard(usb_hid.devices)
+layout = KeyboardLayout(kbd)
+
+# Initialize button
+button1_pin = DigitalInOut(GP22)
+button1_pin.pull = Pull.UP
+button1 = Debouncer(button1_pin)
+
+# Initialize payload selection switch
+payload1Pin = digitalio.DigitalInOut(GP4)
+payload1Pin.switch_to_input(pull=digitalio.Pull.UP)
+payload2Pin = digitalio.DigitalInOut(GP5)
+payload2Pin.switch_to_input(pull=digitalio.Pull.UP)
+payload3Pin = digitalio.DigitalInOut(GP10)
+payload3Pin.switch_to_input(pull=digitalio.Pull.UP)
+payload4Pin = digitalio.DigitalInOut(GP11)
+payload4Pin.switch_to_input(pull=digitalio.Pull.UP)
+def getProgrammingStatus():
+    progStatusPin = digitalio.DigitalInOut(GP0)
+    progStatusPin.switch_to_input(pull=digitalio.Pull.UP)
+    progStatus = not progStatusPin.value
+    return(progStatus)
+
+def runScript(file):
+    global defaultDelay
+    try:
+        with open(file, "r", encoding='utf-8') as f:
+            previousLine = ""
+            for line in f:
+                line = line.rstrip()
+                if line.startswith("REPEAT"):
+                    for _ in range(int(line[7:])):
+                        parseLine(previousLine)
+                        time.sleep(float(defaultDelay)/1000)
+                else:
+                    parseLine(line)
+                    previousLine = line
+                time.sleep(float(defaultDelay)/1000)
+    except OSError as e:
+        print("Unable to open file", file)
+
+def selectPayload():
+    global payload1Pin, payload2Pin, payload3Pin, payload4Pin
+    if not payload1Pin.value:
+        return "payload.dd"
+    elif not payload2Pin.value:
+        return "payload2.dd"
+    elif not payload3Pin.value:
+        return "payload3.dd"
+    elif not payload4Pin.value:
+        return "payload4.dd"
+    else:
+        return "payload.dd"

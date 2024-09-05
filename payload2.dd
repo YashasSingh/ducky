@@ -1,0 +1,11 @@
+REM Rick Roll Payload
+DELAY 500
+GUI r
+DELAY 500
+STRING chrome
+ENTER
+DELAY 1000
+STRING https://www.youtube.com/watch?v=dQw4w9WgXcQ
+ENTER
+DELAY 2000
+F11

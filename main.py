@@ -110,6 +110,7 @@ payload3Pin = digitalio.DigitalInOut(GP10)
 payload3Pin.switch_to_input(pull=digitalio.Pull.UP)
 payload4Pin = digitalio.DigitalInOut(GP11)
 payload4Pin.switch_to_input(pull=digitalio.Pull.UP)
+
 def getProgrammingStatus():
     progStatusPin = digitalio.DigitalInOut(GP0)
     progStatusPin.switch_to_input(pull=digitalio.Pull.UP)
@@ -146,3 +147,38 @@ def selectPayload():
         return "payload4.dd"
     else:
         return "payload.dd"
+
+async def blink_led(led):
+    if board.board_id == 'raspberry_pi_pico':
+        await blink_pico_led(led)
+    elif board.board_id == 'raspberry_pi_pico_w':
+        await blink_pico_w_led(led)
+
+async def blink_pico_led(led):
+    led_state = False
+    while True:
+        for i in range(100):
+            if i < 50:
+                led.duty_cycle = int(i * 2 * 65535 / 100)
+            await asyncio.sleep(0.01)
+        led_state = not led_state
+
+async def blink_pico_w_led(led):
+    led_state = False
+    while True:
+        led.value = int(led_state)
+        led_state = not led_state
+        await asyncio.sleep(0.5)
+
+async def monitor_buttons(button1):
+    button1Down = False
+    while True:
+        button1.update()
+        if button1.fell:
+            button1Down = True
+        if button1.rose and button1Down:
+            payload = selectPayload()
+            print("Running", payload)
+            runScript(payload)
+        button1Down = False
+        await asyncio.sleep(0)

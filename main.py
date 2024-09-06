@@ -302,3 +302,18 @@ async def monitor_light_sensor():
             payload = "bright_payload.dd"
             runScript(payload)
         await asyncio.sleep(0.5)
+
+
+async def main():
+    led = pwmio.PWMOut(board.LED, frequency=5000, duty_cycle=0)
+    await asyncio.gather(
+        blink_led(led),              # LED blinking functionality
+        monitor_buttons(button1),    # Button press monitoring
+        monitor_ir_sensor(),         # IR sensor monitoring
+        monitor_light_sensor(),      # Light sensor monitoring
+        serve_web(),                 # Web interface for remote control
+        run_scheduled_payloads()     # Run scheduled payloads
+    )
+
+# Start the async event loop
+asyncio.run(main())

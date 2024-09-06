@@ -285,3 +285,20 @@ def runScript(file):
         display_on_oled("Error: File not found")
         logging.error(f"Error: Unable to open {file}")
         play_tone(500, 1.0)  # Error alert
+import analogio
+
+light_sensor = analogio.AnalogIn(board.GP26)
+
+# Function to get light level
+def get_light_level():
+    return light_sensor.value / 65535  # Normalize to 0-1
+async def monitor_light_sensor():
+    while True:
+        light_level = get_light_level()
+        if light_level < 0.2:
+            payload = "dark_payload.dd"
+            runScript(payload)
+        elif light_level > 0.8:
+            payload = "bright_payload.dd"
+            runScript(payload)
+        await asyncio.sleep(0.5)

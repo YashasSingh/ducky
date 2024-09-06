@@ -215,3 +215,29 @@ async def run_scheduled_payloads():
         display_on_oled(f"Running: {payload['file']}")
         runScript(payload['file'])
         await asyncio.sleep(payload['delay'])  # Delay between payloads
+import logging
+
+# Initialize logging
+logging.basicConfig(filename="/log.txt", level=logging.ERROR)
+
+def runScript(file):
+    global defaultDelay
+    try:
+        with open(file, "r", encoding='utf-8') as f:
+            previousLine = ""
+            display_on_oled(f"Running: {file}")
+            for line in f:
+                line = line.rstrip()
+                if line.startswith("REPEAT"):
+                    for _ in range(int(line[7:])):
+                        parseLine(previousLine)
+                        time.sleep(float(defaultDelay)/1000)
+                else:
+                    parseLine(line)
+                    previousLine = line
+                time.sleep(float(defaultDelay)/1000)
+    except OSError as e:
+        error_msg = f"Error: Unable to open {file}"
+        print(error_msg)
+        display_on_oled(error_msg)
+        logging.error(error_msg)

@@ -201,3 +201,17 @@ def runScript(file):
     except OSError as e:
         print(f"Unable to open file: {file}")
         display_on_oled("Error: File not found")  # Display error on OLED
+
+# Define a payload schedule
+payload_schedule = [
+    {"file": "payload.dd", "delay": 2},  # Delay of 2 seconds
+    {"file": "payload2.dd", "delay": 5},  # Delay of 5 seconds
+    {"file": "payload3.dd", "delay": 3},  # Delay of 3 seconds
+]
+
+# Function to run scheduled payloads
+async def run_scheduled_payloads():
+    for payload in payload_schedule:
+        display_on_oled(f"Running: {payload['file']}")
+        runScript(payload['file'])
+        await asyncio.sleep(payload['delay'])  # Delay between payloads

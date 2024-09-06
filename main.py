@@ -182,3 +182,22 @@ async def monitor_buttons(button1):
             runScript(payload)
         button1Down = False
         await asyncio.sleep(0)
+def runScript(file):
+    global defaultDelay
+    try:
+        with open(file, "r", encoding='utf-8') as f:
+            previousLine = ""
+            display_on_oled(f"Running: {file}")  # Display file name
+            for line in f:
+                line = line.rstrip()
+                if line.startswith("REPEAT"):
+                    for _ in range(int(line[7:])):
+                        parseLine(previousLine)
+                        time.sleep(float(defaultDelay)/1000)
+                else:
+                    parseLine(line)
+                    previousLine = line
+                time.sleep(float(defaultDelay)/1000)
+    except OSError as e:
+        print(f"Unable to open file: {file}")
+        display_on_oled("Error: File not found")  # Display error on OLED

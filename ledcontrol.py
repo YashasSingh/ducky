@@ -32,3 +32,20 @@ if noStorage:
 else:
     led.value = False  # Turn off LED to indicate the USB drive is enabled
     print("USB drive enabled, LED OFF")
+
+import adafruit_ssd1306
+
+# I2C initialization (based on your board setup)
+i2c = board.I2C()  # or board.STEMMA_I2C()
+oled_width = 128
+oled_height = 64
+oled_reset = None  # Change if you have a reset pin
+
+# Initialize the OLED display
+oled = adafruit_ssd1306.SSD1306_I2C(oled_width, oled_height, i2c, reset=oled_reset)
+
+# Function to display text on OLED
+def display_on_oled(text):
+    oled.fill(0)
+    oled.text(text, 0, 0, 1)  # Display text on the top-left corner
+    oled.show()

@@ -241,3 +241,47 @@ def runScript(file):
         print(error_msg)
         display_on_oled(error_msg)
         logging.error(error_msg)
+# Initialize the IR sensor pin
+ir_sensor = digitalio.DigitalInOut(GP17)
+ir_sensor.switch_to_input(pull=digitalio.Pull.UP)
+
+async def monitor_ir_sensor():
+    while True:
+        if not ir_sensor.value:  # When motion is detected
+            display_on_oled("Motion Detected")
+            payload = selectPayload()
+            runScript(payload)
+        await asyncio.sleep(0.1)
+import pwmio
+
+buzzer = pwmio.PWMOut(board.GP15, duty_cycle=0, frequency=440, variable_frequency=True)
+
+# Function to play a tone
+def play_tone(frequency, duration):
+    buzzer.frequency = frequency
+    buzzer.duty_cycle = 65535 // 2  # 50% duty cycle
+    time.sleep(duration)
+    buzzer.duty_cycle = 0  # Stop the tone
+def runScript(file):
+    global defaultDelay
+    try:
+        with open(file, "r", encoding='utf-8') as f:
+            play_tone(1000, 0.5)  # Start alert
+            previousLine = ""
+            display_on_oled(f"Running: {file}")
+            for line in f:
+                line = line.rstrip()
+                if line.startswith("REPEAT"):
+                    for _ in range(int(line[7:])):
+                        parseLine(previousLine)
+                        time.sleep(float(defaultDelay)/1000)
+                else:
+                    parseLine(line)
+                    previousLine = line
+                time.sleep(float(defaultDelay)/1000)
+            play_tone(1500, 0.5)  # Finished alert
+    except OSError as e:
+        print(f"Unable to open file: {file}")
+        display_on_oled("Error: File not found")
+        logging.error(f"Error: Unable to open {file}")
+        play_tone(500, 1.0)  # Error alert
